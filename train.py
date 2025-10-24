@@ -12,6 +12,13 @@ image = (
     .pip_install("uv")
     .uv_sync(extras=["rl"])
     .uv_pip_install("wordle", extra_index_url="https://hub.primeintellect.ai/will/simple/")
+    .env({
+        "NCCL_P2P_DISABLE": "1",
+        "NCCL_IB_DISABLE": "1",
+        "TORCH_NCCL_ENABLE_MONITORING": "0",
+        "TORCH_NCCL_HEARTBEAT_TIMEOUT_SEC": "0",
+        "TORCH_NCCL_BLOCKING_WAIT": "1",
+    })
     .add_local_file(config, f"/root/{config}")
 )
 

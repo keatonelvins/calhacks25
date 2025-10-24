@@ -12,5 +12,8 @@ uv run modal run train.py
 uv run modal run --detach train.py  # or detach for long runs
 ```
 
+Artifacts will be stored in the `vf-wordle` volume
+
 # Refs
 - https://github.com/PrimeIntellect-ai/verifiers/tree/main/verifiers/rl
+- https://modal.com/docs/guide/volumes
