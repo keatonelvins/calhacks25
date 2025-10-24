@@ -20,6 +20,6 @@ learning_rate = 3e-5
 micro_batch_size = 16
 rollouts_per_example = 16
 batch_size = 128
-max_steps = 100
+max_steps = 25
 max_tokens = 128
 max_seq_len = 512
