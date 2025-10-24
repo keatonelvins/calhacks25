@@ -14,7 +14,6 @@ gpus = 1
 
 [trainer.args]
 run_name = "reverse-text"
-output_dir = "/artifacts/reverse-text"
 use_lora = true
 learning_rate = 3e-5
 micro_batch_size = 16
@@ -23,3 +22,4 @@ batch_size = 128
 max_steps = 25
 max_tokens = 128
 max_seq_len = 512
+output_dir = "/artifacts/reverse-text"
