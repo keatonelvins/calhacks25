@@ -1,0 +1,22 @@
+[project]
+name = "calhacks25"
+version = "0.1.0"
+description = "calhacks25"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "modal>=1.2.1",
+    "verifiers>=0.1.6.post0",
+]
+
+[project.optional-dependencies]
+rl = ["verifiers[rl]"]
+
+[tool.uv.extra-build-dependencies]
+flash-attn = [{ requirement = "torch", match-runtime = true }]
+
+[tool.uv.extra-build-variables]
+flash-attn = { FLASH_ATTENTION_SKIP_CUDA_BUILD = "TRUE" }
+
+[tool.uv.sources]
+verifiers = { git = "https://github.com/PrimeIntellect-ai/verifiers.git", rev = "main" }
