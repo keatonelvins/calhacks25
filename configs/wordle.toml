@@ -5,7 +5,6 @@ id = "will/wordle"
 
 [inference]
 gpus = 6
-tensor_parallel_size = 6
 
 [inference.args]
 enforce_eager = true
