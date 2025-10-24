@@ -8,11 +8,11 @@ uv run modal create wandb-secret WANDB_API_KEY=...
 
 # Train:
 ```bash
-uv run modal run train.py
-uv run modal run --detach train.py  # or detach for long runs
+uv run train.py --help
+uv run train.py --config configs/wordle.toml --detach
 ```
 
-Artifacts will be stored in the `vf-wordle` volume
+Artifacts will be stored in the `vf-wordle` volume!
 
 # Refs
 - https://github.com/PrimeIntellect-ai/verifiers/tree/main/verifiers/rl

@@ -1,46 +1,49 @@
 import modal
+import argparse
 import subprocess
 from pathlib import Path
+from verifiers.scripts.rl import load_toml, build_vllm_command, build_train_command
 
-config = "wordle.toml"
-app = modal.App("vf-wordle")
-artifacts_volume = modal.Volume.from_name("vf-wordle-artifacts", create_if_missing=True)
+app = modal.App("vf")
+artifacts_volume = modal.Volume.from_name("vf-artifacts", create_if_missing=True)
 
 image = (
     modal.Image.from_registry("nvidia/cuda:12.8.1-devel-ubuntu24.04", add_python="3.12")
     .apt_install("git")
     .pip_install("uv")
     .uv_sync(extras=["rl"])
-    .uv_pip_install("wordle", extra_index_url="https://hub.primeintellect.ai/will/simple/")
-    .env({
-        "NCCL_P2P_DISABLE": "1",
-        "NCCL_IB_DISABLE": "1",
-        "TORCH_NCCL_ENABLE_MONITORING": "0",
-        "TORCH_NCCL_HEARTBEAT_TIMEOUT_SEC": "0",
-        "TORCH_NCCL_BLOCKING_WAIT": "1",
-    })
-    .add_local_file(config, f"/root/{config}")
+    .add_local_dir("configs", "/root/configs")
 )
 
-@app.function(
-    image=image,
-    gpu="H100:8",
-    timeout=60 * 60 * 24,
-    volumes={"/artifacts": artifacts_volume},
-    secrets=[modal.Secret.from_name("wandb-secret")],
-)
-def train():
-    from verifiers.scripts.rl import load_toml, build_vllm_command
+def build_gpu_prefix(start: int, end: int):
+    return "CUDA_VISIBLE_DEVICES=" + ",".join(str(i) for i in range(start, end))
 
+def train(config: str, infer_gpus: int, total_gpus: int):
     data = load_toml(Path(f"/root/{config}"))
-    infer_gpus = data["inference"]["gpus"]
-    total_gpus = infer_gpus + data["trainer"]["gpus"]
     
-    inference_gpu_str = "CUDA_VISIBLE_DEVICES=" + ",".join(str(i) for i in range(infer_gpus))
-    trainer_gpu_str = "CUDA_VISIBLE_DEVICES=" + ",".join(str(i) for i in range(infer_gpus, total_gpus))
+    vllm_cmd = build_vllm_command(data["model"], data["inference"], build_gpu_prefix(0, infer_gpus))
+    train_cmd = build_train_command(data["env"]["id"], f"/root/{config}", build_gpu_prefix(infer_gpus, total_gpus))
     
-    vllm_cmd = build_vllm_command(data["model"], data["inference"], inference_gpu_str)
-    train_cmd = " ".join([trainer_gpu_str, "uv run", "vf-train", "@", f"/root/{config}"])
-
     subprocess.Popen(vllm_cmd, shell=True)
     subprocess.run(train_cmd, shell=True)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", type=str, required=True, help="Path to the TOML file (must be in configs/).")
+    parser.add_argument("--detach", action="store_true", help="Keep the Modal runner alive even if the terminal closes.")
+    args = parser.parse_args()
+    config, detach = args.config, args.detach
+
+    data = load_toml(Path(config))
+    infer_gpus = data["inference"]["gpus"]
+    total_gpus = infer_gpus + data["trainer"]["gpus"]
+
+    runner = app.function(
+        image=image,
+        gpu=f"H100:{total_gpus}",
+        timeout=60 * 60 * 24,
+        volumes={"/artifacts": artifacts_volume},
+        secrets=[modal.Secret.from_name("wandb-secret")],
+    )(train)
+    with modal.enable_output(), app.run(detach=detach):
+        runner.remote(config, infer_gpus, total_gpus)
