@@ -9,6 +9,7 @@ uv run modal create wandb-secret WANDB_API_KEY=...
 # Train:
 ```bash
 uv run train.py --help
+uv run train.py --config configs/reverse-text.toml
 uv run train.py --config configs/wordle.toml --detach
 ```
 

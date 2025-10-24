@@ -12,6 +12,7 @@ image = (
     .apt_install("git")
     .pip_install("uv")
     .uv_sync(extras=["rl"])
+    .env({"WANDB_PROJECT": "vf-calhacks25"})
     .add_local_dir("configs", "/root/configs")
 )
 
