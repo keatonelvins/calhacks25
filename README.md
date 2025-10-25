@@ -13,11 +13,11 @@ uv run train.py --config configs/alphabet-sort.toml
 uv run train.py --config configs/wordle.toml --detach
 ```
 
-# Build:
+# Have Fun:
 ```bash
-uv run vf-init env-name
-uv run vf-install env-name
-uv run train.py --config configs/env-name.toml
+uv run vf-init your-env-name
+uv run vf-install your-env-name
+uv run train.py --config configs/your-env-name.toml
 ```
 
 Artifacts will be stored in the `vf-artifacts` volume (see `uv run modal volume --help`).
