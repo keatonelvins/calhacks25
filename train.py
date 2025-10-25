@@ -6,6 +6,7 @@ from verifiers.scripts.rl import load_toml, build_vllm_command, build_train_comm
 
 app = modal.App("vf")
 artifacts_volume = modal.Volume.from_name("vf-artifacts", create_if_missing=True)
+envs = [p.name for p in Path("environments").glob("*")]
 
 image = (
     modal.Image.from_registry("nvidia/cuda:12.8.1-devel-ubuntu24.04", add_python="3.12")
@@ -15,6 +16,9 @@ image = (
     .env({"WANDB_PROJECT": "vf-calhacks25"})
     .add_local_dir("configs", "/root/configs")
 )
+if len(envs) > 0:
+    print(f"Adding {envs} to image")
+    image = image.add_local_python_source(*envs)
 
 def build_gpu_prefix(start: int, end: int):
     return "CUDA_VISIBLE_DEVICES=" + ",".join(str(i) for i in range(start, end))
